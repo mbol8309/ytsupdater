@@ -1,3 +1,5 @@
 requests
 sqlalchemy
 delugeClient-kevin
+ariap
+urllib3>=1.26.5

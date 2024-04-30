@@ -3,6 +3,8 @@ import urllib
 from classes import Movie, Torrent, Genre, DB
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy import create_engine
+import time
+from random import randint
 
 def QueryYTS(filters:dict = {}, page=1, until_page=-1, until = lambda x: True) -> list :
     baseurl = "https://yts.uproxy.to/api/v2/list_movies.json"
@@ -28,37 +30,46 @@ def QueryYTS(filters:dict = {}, page=1, until_page=-1, until = lambda x: True) -
         url_param = urllib.parse.urlencode(default_filters)
         fullurl = f"{baseurl}?{url_param}"
         print(f"Query: {fullurl}")
-        data = requests.get(fullurl, headers={
-                "Accept" : "application/json",
-                "User-Agent": "insomnia/2023.5.8"
-            })
-        if data.status_code != 200:
-            print("Error on request")
-        response = data.json()
-        response_data = response['data']
-        if until_page==-1:
-            inner_until_page = int(response_data['movie_count'] / response_data['limit'])
+        try:
+            data = requests.get(fullurl, headers={
+                    "Accept" : "application/json",
+                    "User-Agent": "insomnia/2023.5.8"
+                })
+            if data.status_code != 200:
+                print("Error on request")
+            response = data.json()
+            response_data = response['data']
+            if until_page==-1:
+                inner_until_page = int(response_data['movie_count'] / response_data['limit'])
 
-        movies = response_data['movies']
+            movies = response_data['movies']
 
-        #movies with duplicated
-        for m in movies:
-            if not until(m): # si no se cumple esta accion devuelve lo que tiene
-                return allmovies
+            #movies with duplicated
+            for m in movies:
+                if not until(m): # si no se cumple esta accion devuelve lo que tiene
+                    return allmovies
 
-            if m['id'] not in movies_id:
-                allmovies.append(m)
-                movies_id.add(m['id'])
+                if m['id'] not in movies_id:
+                    allmovies.append(m)
+                    movies_id.add(m['id'])
+        except Exception as e:
+            print(f"Hard times, and exception: {e}")
 
         current_page+=1
+        print('Waiting something to prevent block')
+        forHowMuch = randint(2,5)
+        print(f"Waiting for {forHowMuch} seconds", end='')
+        for i in range(forHowMuch):
+            print(".", end='', flush=True)
+            time.sleep(1)
     return allmovies
 
 
-def writeToDB(movies: list):
+def writeToDB(movies: list, filename="movies.sqlite"):
     # for m in movies_distint:
     #     print(f"{m['title']} - {m['rating']}")
 
-    dbfile = "movies.sqlite"
+    dbfile = filename
 
     engine = create_engine(f"sqlite:///{dbfile}")
     Session = sessionmaker(bind=engine)
@@ -83,6 +94,5 @@ def writeToDB(movies: list):
         session.commit()
 
 
-list_movies = QueryYTS(until=lambda m: m['year']>=2024)
-writeToDB(list_movies)
+
 
