@@ -1,6 +1,8 @@
 from classes import Movie, Torrent, Genre, DB
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy import create_engine, and_, not_
+from dotenv import load_dotenv
+import os
 
 filedb = "movies.sqlite"
 
@@ -25,11 +27,16 @@ class MovieQuery:
             return _movies
 
 
-common_filters = [
-    ~Movie.torrents.any(Torrent.downloaded == True),
-    Movie.genres.any(Genre.title == "Action"),
-    Movie.rating > 7
-]
+def get_filters():
+    common_filters = []
+    load_dotenv()
+    filters =  os.getenv("FILTER")
+    try:
+        common_filters = eval(filters)
+    except:
+        common_filters = []
+    return common_filters
+    
 
 
 
