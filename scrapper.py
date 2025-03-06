@@ -7,7 +7,7 @@ import time
 from random import randint
 
 def QueryYTS(filters:dict = {}, page=1, until_page=-1, until = lambda x: True) -> list :
-    baseurl = "https://yts.uproxy.to/api/v2/list_movies.json"
+    baseurl = "https://yts.mx/api/v2/list_movies.json"
     default_filters = dict(
         quality = "1080p",
         sort_by="year",
@@ -85,11 +85,11 @@ def writeToDB(movies: list, filename="movies.sqlite"):
             torrent, isTorrentNew = DB.get_or_createTorrent(session, movie.id, torrent_data)
             if isTorrentNew:
                 print(f"New torrent. Film: {movie.title} quality:{torrent.quality}")
-
-        for genres_title in m['genres']:
-            genre, isGenreNew = DB.get_or_createGenre(session, movie.id, genres_title)
-            if isGenreNew:
-                print(f"New genre found: {genre.title}")
+        if "genres" in m:
+            for genres_title in m['genres']:
+                genre, isGenreNew = DB.get_or_createGenre(session, movie.id, genres_title)
+                if isGenreNew:
+                    print(f"New genre found: {genre.title}")
 
         session.commit()
 

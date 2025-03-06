@@ -12,7 +12,7 @@ class MovieQuery:
         self.Session = sessionmaker(bind=self.engine)
         self.session = self.Session()
 
-    def get_movies(self, filters=None, order_by=None):
+    def get_movies(self, filters=None, order_by=None) -> list:
         _movies = []
         try:
             query = self.session.query(Movie)
