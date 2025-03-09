@@ -4,8 +4,13 @@ import { Checkbox, Switch } from 'pretty-checkbox-react';
 import '@djthoms/pretty-checkbox';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { green } from "@mui/material/colors";
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
+import { useState } from "react";
 
 const MovieCard = ({ movie, handleMarkForDownload, onClick }) => {
+    
+    const [loaded, setLoaded] = useState(false);
     return (
         <Grid2 item xs={12} sm={6} md={4} key={movie.id} onClick={() => onClick && onClick(movie)}>
             <motion.div
@@ -14,8 +19,9 @@ const MovieCard = ({ movie, handleMarkForDownload, onClick }) => {
             >
                 <Box sx={{ display: 'flex', justifyContent: 'center', position: 'relative', cursor: 'pointer' }} >
                 {movie.mark_for_download && <CheckCircleIcon style={{position:'absolute', color:green[600], top:10, right:10 }} />
-                        }
-                    <img src={movie.medium_cover_image} alt={movie.title} style={{ maxWidth: 200 }} />
+                    }
+                    {!loaded && <Skeleton height={400} width={200} />}
+                    <img src={movie.medium_cover_image} alt={movie.title} style={{ maxWidth: 200, maxHeight:400,display: loaded ? 'block' : 'none' }} onLoad={() => setLoaded(true)}/>
 
                     <Box style={{
                         position: 'absolute',
