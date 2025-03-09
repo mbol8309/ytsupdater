@@ -5,9 +5,12 @@ from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy import create_engine
 import time
 from random import randint
+from configs import Config
 
-def QueryYTS(filters:dict = {}, page=1, until_page=-1, until = lambda x: True) -> list :
-    baseurl = "https://yts.mx/api/v2/list_movies.json"
+config = Config()
+
+def QueryYTS(filters:dict = {}, page=1, until_page=-1, until = lambda x: True, partial_update=True) -> list :
+    baseurl = f"{config.yts_url}/api/v2/list_movies.json"
     default_filters = dict(
         quality = "1080p",
         sort_by="year",
@@ -52,6 +55,11 @@ def QueryYTS(filters:dict = {}, page=1, until_page=-1, until = lambda x: True) -
                 if m['id'] not in movies_id:
                     allmovies.append(m)
                     movies_id.add(m['id'])
+                    if partial_update:
+                        if len(allmovies) >= 20:
+                            print(f"Writing to DB {len(allmovies)} films")
+                            writeToDB(allmovies, config.sqlite_filename)
+                            allmovies = []
         except Exception as e:
             print(f"Hard times, and exception: {e}")
 
@@ -78,18 +86,20 @@ def writeToDB(movies: list, filename="movies.sqlite"):
 
     for m in movies:
         movie, isMovieNew = DB.get_or_createMovie(session, m)
-        if isMovieNew:
-            print(f"Adding new film: {movie.title}")
+        if movie is not None:
+            if isMovieNew:
+                print(f"Adding new film: {movie.title}")
 
-        for torrent_data in m['torrents']:
-            torrent, isTorrentNew = DB.get_or_createTorrent(session, movie.id, torrent_data)
-            if isTorrentNew:
-                print(f"New torrent. Film: {movie.title} quality:{torrent.quality}")
-        if "genres" in m:
-            for genres_title in m['genres']:
-                genre, isGenreNew = DB.get_or_createGenre(session, movie.id, genres_title)
-                if isGenreNew:
-                    print(f"New genre found: {genre.title}")
+            for torrent_data in m['torrents']:
+                torrent, isTorrentNew = DB.get_or_createTorrent(session, movie.id, torrent_data)
+                if torrent is not None:
+                    if isTorrentNew:
+                        print(f"New torrent. Film: {movie.title} quality:{torrent.quality}")
+            if "genres" in m:
+                for genres_title in m['genres']:
+                    genre, isGenreNew = DB.get_or_createGenre(session, movie.id, genres_title)
+                    if isGenreNew:
+                        print(f"New genre found: {genre.title}")
 
         session.commit()
 

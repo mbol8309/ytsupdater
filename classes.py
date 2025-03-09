@@ -44,6 +44,7 @@ class Movie(Base):
     state = Column(String)
     date_uploaded = Column(String)
     date_uploaded_unix = Column(Integer)
+    mark_for_download = Column(Boolean,default=False)
     
     # Definir relación con la tabla de torrents
     torrents = relationship("Torrent", back_populates="movie")
@@ -106,35 +107,38 @@ class DB:
         if movie:
             return movie, False  # Devolver la película existente y False para indicar que no se creó
         else:
+            try:
             # Si no existe, crear una nueva película
-            movie = Movie(
-                id=data["id"],
-                url=data["url"],
-                imdb_code=data["imdb_code"],
-                title=data["title"],
-                title_english=data["title_english"],
-                title_long=data["title_long"],
-                slug=data["slug"],
-                year=data["year"],
-                rating=data["rating"],
-                runtime=data["runtime"],
-                summary=data["summary"],
-                description_full=data["description_full"],
-                synopsis=data["synopsis"],
-                yt_trailer_code=data["yt_trailer_code"],
-                language=data["language"],
-                mpa_rating=data["mpa_rating"],
-                background_image=data["background_image"],
-                background_image_original=data["background_image_original"],
-                small_cover_image=data["small_cover_image"],
-                medium_cover_image=data["medium_cover_image"],
-                large_cover_image=data["large_cover_image"],
-                state=data["state"],
-                date_uploaded=data["date_uploaded"],
-                date_uploaded_unix=data["date_uploaded_unix"]
-            )
-            session.add(movie)
-            return movie, True  # Devolver la nueva película y True para indicar que se creó
+                movie = Movie(
+                    id=data["id"],
+                    url=data["url"],
+                    imdb_code=data["imdb_code"],
+                    title=data["title"],
+                    title_english=data["title_english"],
+                    title_long=data["title_long"],
+                    slug=data["slug"],
+                    year=data["year"],
+                    rating=data["rating"],
+                    runtime=data["runtime"],
+                    summary=data["summary"],
+                    description_full=data["description_full"],
+                    synopsis=data["synopsis"],
+                    yt_trailer_code=data["yt_trailer_code"],
+                    language=data["language"],
+                    mpa_rating=data["mpa_rating"],
+                    background_image=data["background_image"],
+                    background_image_original=data["background_image_original"],
+                    small_cover_image=data["small_cover_image"],
+                    medium_cover_image=data["medium_cover_image"],
+                    large_cover_image=data["large_cover_image"],
+                    state=data["state"],
+                    date_uploaded=data["date_uploaded"],
+                    date_uploaded_unix=data["date_uploaded_unix"]
+                )
+                session.add(movie)
+                return movie, True  # Devolver la nueva película y True para indicar que se creó
+            except Exception as e: 
+                return None,False
 
     def get_or_createGenre(session,movie_id, title):
         # Buscar si existe un género con el mismo título en la base de datos
@@ -161,22 +165,25 @@ class DB:
             return torrent, False  # Devolver el torrent existente y False para indicar que no se creó
         else:
             # Si no existe, crear un nuevo torrent
-            torrent = Torrent(
-                movie_id=movie_id,
-                url=data["url"],
-                hash=data["hash"],
-                quality=data["quality"],
-                type=data["type"],
-                is_repack=data["is_repack"],
-                video_codec=data["video_codec"],
-                bit_depth=data["bit_depth"],
-                audio_channels=data["audio_channels"],
-                seeds=data["seeds"],
-                peers=data["peers"],
-                size=data["size"],
-                size_bytes=data["size_bytes"],
-                date_uploaded=data["date_uploaded"],
-                date_uploaded_unix=data["date_uploaded_unix"]
-            )
-            session.add(torrent)
-            return torrent, True  # Devolver el nuevo torrent y True para indicar que se creó
+            try:
+                torrent = Torrent(
+                    movie_id=movie_id,
+                    url=data["url"],
+                    hash=data["hash"],
+                    quality=data["quality"],
+                    type=data["type"],
+                    is_repack=data["is_repack"],
+                    video_codec=data["video_codec"],
+                    bit_depth=data["bit_depth"],
+                    audio_channels=data["audio_channels"],
+                    seeds=data["seeds"],
+                    peers=data["peers"],
+                    size=data["size"],
+                    size_bytes=data["size_bytes"],
+                    date_uploaded=data["date_uploaded"],
+                    date_uploaded_unix=data["date_uploaded_unix"]
+                )
+                session.add(torrent)
+                return torrent, True  # Devolver el nuevo torrent y True para indicar que se creó
+            except Exception as e:
+                return None,False
